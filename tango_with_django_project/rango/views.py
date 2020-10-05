@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from rango.models import Category, Page
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
+from django.shortcuts import redirect
 from rango.webhose_search import run_query
 
 
@@ -47,6 +48,18 @@ def show_category(request, category_name_slug):
     except Category.DoesNotExist:
         context_dict['category'] = None
         context_dict['pages'] = None
+
+    # search
+    result_list = []
+    query = ''
+    if request.method == 'POST':
+        query = request.POST['query'].strip()
+        if query:
+            # 调用前面定义的函数向 Webhose 发起查询，获得结果列表
+            result_list = run_query(query)
+            context_dict['query'] = query
+        context_dict['result_list'] = result_list
+
     return render(request, 'rango/category.html', context_dict)
 
 
@@ -195,9 +208,28 @@ def visitor_cookie_handler(request):
 
 def search(request):
     result_list = []
+    query = ''
     if request.method == 'POST':
         query = request.POST['query'].strip()
         if query:
             # 调用前面定义的函数向 Webhose 发起查询，获得结果列表
             result_list = run_query(query)
+
     return render(request, 'rango/search.html', {'result_list': result_list, 'query': query})
+
+
+# 记录网页的访问次数
+def track_url(request):
+    page_id = None
+    url = '/rango/'
+    if request.method == 'GET':
+        if 'page_id' in request.GET:
+            page_id = request.GET['page_id']
+            try:
+                page = Page.object.get(id=page_id)
+                page.views = page.views + 1
+                page.save()
+                url = page.url
+            except:
+                pass
+    return redirect(url)
