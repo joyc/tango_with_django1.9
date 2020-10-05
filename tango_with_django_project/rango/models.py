@@ -31,9 +31,12 @@ class Page(models.Model):
 
 
 class UserProfile(models.Model):
+    # 建立与 User 模型之间的关系
     user = models.OneToOneField(User)
+    # 想增加的属性
     website = models.URLField(blank=True)
     picture = models.ImageField(upload_to='profile_images', blank=True)
 
+    # 覆盖 __str__() 方法，返回有意义的字符串
     def __str__(self):
         return self.user.username

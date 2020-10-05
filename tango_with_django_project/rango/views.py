@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from registration.backends.simple.views import RegistrationView
 from rango.models import Category, Page
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
 from django.shortcuts import redirect
@@ -42,7 +43,7 @@ def show_category(request, category_name_slug):
     context_dict = {}
     try:
         category = Category.objects.get(slug=category_name_slug)
-        pages = Page.objects.filter(category=category)
+        pages = Page.objects.filter(category=category).order_by('-views')   # 按访问次数排序网页
         context_dict['pages'] = pages
         context_dict['category'] = category
     except Category.DoesNotExist:
@@ -50,15 +51,17 @@ def show_category(request, category_name_slug):
         context_dict['pages'] = None
 
     # search
+    # 设定一个默认的搜索词条（分类名），显示在搜索框中
+    context_dict['query'] = category.name
+
     result_list = []
-    query = ''
     if request.method == 'POST':
         query = request.POST['query'].strip()
         if query:
             # 调用前面定义的函数向 Webhose 发起查询，获得结果列表
             result_list = run_query(query)
             context_dict['query'] = query
-        context_dict['result_list'] = result_list
+            context_dict['result_list'] = result_list
 
     return render(request, 'rango/category.html', context_dict)
 
@@ -100,6 +103,23 @@ def add_page(request, category_name_slug):
     context_dict = {'form': form, 'category': category}
     return render(request, 'rango/add_page.html', context_dict)
 
+
+@login_required
+def register_profile(request):
+    form = UserProfileForm()
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES)
+        if form.is_valid():
+            user_profile = form.save(commit=False)
+            user_profile.user = request.user
+            user_profile.save()
+
+            return redirect('index')
+        else:
+            print(form.errors)
+    context_dict = {'form': form}
+    return render(request, 'rango/profile_registration.html', context_dict)
 
 # def register(request):
 #     # 一个布尔值，告诉模板注册是否成功
@@ -221,15 +241,22 @@ def search(request):
 # 记录网页的访问次数
 def track_url(request):
     page_id = None
-    url = '/rango/'
     if request.method == 'GET':
         if 'page_id' in request.GET:
             page_id = request.GET['page_id']
-            try:
-                page = Page.object.get(id=page_id)
-                page.views = page.views + 1
-                page.save()
-                url = page.url
-            except:
-                pass
-    return redirect(url)
+    if page_id:
+        try:
+            page = Page.objects.get(id=page_id)
+            page.views = page.views + 1
+            page.save()
+            return redirect(page.url)
+        except:
+            return HttpResponse("Page id {0} not found".format(page_id))
+    print("No page_id in get string")
+    return redirect(reverse('index'))
+
+
+# 用户成功注册后重定向到首页
+class RangoRegistrationView(RegistrationView):
+    def get_success_url(self, user):
+        return reverse('register_profile')
