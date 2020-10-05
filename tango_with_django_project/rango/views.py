@@ -200,4 +200,4 @@ def search(request):
         if query:
             # 调用前面定义的函数向 Webhose 发起查询，获得结果列表
             result_list = run_query(query)
-    return render(request, 'rango/search.html', {'result_list': result_list})
+    return render(request, 'rango/search.html', {'result_list': result_list, 'query': query})
