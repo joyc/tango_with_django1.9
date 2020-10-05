@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rango',
+    'bootstrap_toolkit',  # 增加 bootstrap_toolkit 包
 ]
 
 MIDDLEWARE_CLASSES = [
