@@ -285,3 +285,9 @@ def profile(request, username):
             print(form.errors)
 
     return render(request, 'rango/profile.html', {'userprofile': userprofile, 'selecteduser': user, 'form': form})
+
+# 列出用户资料
+@login_required
+def list_profiles(request):
+    userprofile_list = UserProfile.objects.all()
+    return render(request, 'rango/list_profiles.html', {'userprofile_list': userprofile_list})
