@@ -1,17 +1,19 @@
 from datetime import datetime
 
 from django.shortcuts import render
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect, HttpResponse
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
-from registration.backends.simple.views import RegistrationView
-from rango.models import Category, Page
-from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
 from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse
+
+from rango.models import Category, Page, UserProfile
+from rango.forms import CategoryForm, PageForm, UserProfileForm
 from rango.webhose_search import run_query
+
+from registration.backends.simple.views import RegistrationView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import authenticate, login
 
 
 def index(request):
@@ -260,3 +262,26 @@ def track_url(request):
 class RangoRegistrationView(RegistrationView):
     def get_success_url(self, user):
         return reverse('register_profile')
+
+
+# 个人资料编辑
+@login_required
+def profile(request, username):
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return redirect('index')
+
+    userprofile = UserProfile.objects.get_or_create(user=user)[0]
+    # 创建form实例
+    form = UserProfileForm({'website': userprofile.website, 'picture': userprofile.picture})
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=userprofile)
+        if form.is_valid():
+            form.save(commit=True)
+            return redirect('profile', user.username)
+        else:
+            print(form.errors)
+
+    return render(request, 'rango/profile.html', {'userprofile': userprofile, 'selecteduser': user, 'form': form})
