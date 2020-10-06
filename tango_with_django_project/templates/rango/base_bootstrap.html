@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 {% load staticfiles %}
+
 {% load rango_template_tags %}
 <html lang="en">
 <head>
@@ -17,6 +18,8 @@
     <link href="http://v4-alpha.getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
     <link href="http://v4-alpha.getbootstrap.com/examples/dashboard/dashboard.css" rel="stylesheet">
+    <!--js-->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
 </head>
 
 <body>
@@ -101,5 +104,7 @@
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="http://v4-alpha.getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="{% static 'js/rango-ajax.js' %}"></script>
+    <script src="{% static 'js/rango-jquery.js' %}"></script>
 </body>
 </html>

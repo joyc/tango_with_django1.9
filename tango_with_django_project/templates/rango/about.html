@@ -5,6 +5,20 @@
 {% endblock %}
 
 {% block body_block %}
+    <div>
+        <br />
+        <button class="btn btn-primary" onClick="alert('You clicked the button using JavaScript.');">
+            Click Me - I run JavaScript
+        </button>
+        <br /><br />
+        <button class="btn btn-primary" id="about-btn">
+            Click Me - I'm JavaScript on Speed
+        </button>
+    </div>
+    <br />
+    <p>This text is for a JQuery Example</p>
+    <br />
+    <div id="msg">Hello - I'm here for a JQuery Example too</div><br />
     <p>This tutorial has been put together by {{ name }}. <br>
     这是您第 {{ request.session.visits }} 次访问本站。 </p>
     <hr />
